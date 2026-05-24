@@ -3,10 +3,9 @@ use objc2::msg_send;
 use objc2_app_kit::NSScreen;
 use objc2_foundation::{MainThreadMarker, NSRect};
 
-/// Height of the notch trigger area at the top of the screen.
-/// Thin strip at the very top edge only — leaves ample buffer below
-/// for app window title bars, menu bar clicking, and dragging.
-pub const NOTCH_AREA_HEIGHT: f64 = 6.0;
+/// Distance from screen top for the notch trigger threshold.
+/// Set to 4px — user must push mouse all the way to the physical top edge.
+pub const NOTCH_AREA_HEIGHT: f64 = 4.0;
 
 
 #[derive(Debug, Clone, Copy)]
