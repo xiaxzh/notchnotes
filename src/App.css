@@ -233,9 +233,12 @@ html, body, #root {
 .tab-list {
   display: flex;
   gap: 2px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   flex: 1;
   min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-tertiary) transparent;
 }
 
 .tab-item {
@@ -280,6 +283,17 @@ html, body, #root {
   outline: none;
   width: 80px;
   font-family: inherit;
+  transition: border-color 0.15s;
+}
+.tab-edit-input.error {
+  border-color: #ff3b30;
+  animation: tab-error-shake 0.3s ease-in-out;
+}
+@keyframes tab-error-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
 }
 
 .tab-edit-btn,

@@ -1,4 +1,9 @@
+import type { Editor } from '@tiptap/core';
 import { getActiveEditor } from './MarkdownEditor';
+
+function focusAtCursor(ed: Editor) {
+  return ed.chain().focus().setTextSelection(ed.state.selection.head);
+}
 
 export default function FormatToolbar() {
   const bold = () => getActiveEditor()?.chain().focus().toggleBold().run();
@@ -9,11 +14,11 @@ export default function FormatToolbar() {
   const h2 = () => getActiveEditor()?.chain().focus().toggleHeading({ level: 2 }).run();
   const h3 = () => getActiveEditor()?.chain().focus().toggleHeading({ level: 3 }).run();
   const quote = () => getActiveEditor()?.chain().focus().toggleBlockquote().run();
-  const bulletList = () => getActiveEditor()?.chain().focus().toggleBulletList().run();
-  const orderedList = () => getActiveEditor()?.chain().focus().toggleOrderedList().run();
+  const bulletList = () => { const ed = getActiveEditor(); if (ed) focusAtCursor(ed).toggleBulletList().run(); };
+  const orderedList = () => { const ed = getActiveEditor(); if (ed) focusAtCursor(ed).toggleOrderedList().run(); };
   const taskList = () => {
     const ed = getActiveEditor();
-    if (ed) (ed.chain().focus() as any).toggleTaskList().run();
+    if (ed) (focusAtCursor(ed) as any).toggleTaskList().run();
   };
 
   return (

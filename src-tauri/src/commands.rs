@@ -16,13 +16,23 @@ pub async fn add_tab(_app: AppHandle<tauri::Wry>, db: State<'_, AppDatabase>) ->
     let now = chrono::Utc::now().to_rfc3339();
     let id = uuid::Uuid::new_v4().to_string();
 
-    let counter_row: Option<(String,)> = sqlx::query_as("SELECT value FROM settings WHERE key = 'tab_counter'")
-        .fetch_optional(&db.0)
+    // Find the smallest unused "便签 N" number by scanning existing tab names.
+    let existing: Vec<(String,)> = sqlx::query_as("SELECT name FROM tabs")
+        .fetch_all(&db.0)
         .await
         .map_err(|e| e.to_string())?;
 
-    let counter: i64 = counter_row
-        .and_then(|(v,)| v.parse().ok())
+    let mut used: Vec<i64> = existing
+        .iter()
+        .filter_map(|(name,)| {
+            let rest = name.strip_prefix("便签 ")?;
+            rest.parse::<i64>().ok().filter(|&n| n > 0)
+        })
+        .collect();
+    used.sort();
+    // Find first gap in positive integers: 1, 2, ... used[0], used[1], ...
+    let counter = (1i64..)
+        .find(|n| used.binary_search(n).is_err())
         .unwrap_or(1);
 
     let name = format!("便签 {}", counter);
@@ -34,12 +44,6 @@ pub async fn add_tab(_app: AppHandle<tauri::Wry>, db: State<'_, AppDatabase>) ->
         .bind(&name)
         .bind(&now)
         .bind(&now)
-        .execute(&db.0)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    sqlx::query("UPDATE settings SET value = ?1 WHERE key = 'tab_counter'")
-        .bind(&(counter + 1).to_string())
         .execute(&db.0)
         .await
         .map_err(|e| e.to_string())?;
@@ -66,6 +70,20 @@ pub async fn remove_tab(_app: AppHandle<tauri::Wry>, db: State<'_, AppDatabase>,
 
 #[tauri::command]
 pub async fn rename_tab(_app: AppHandle<tauri::Wry>, db: State<'_, AppDatabase>, id: String, name: String) -> Result<(), String> {
+    // Reject duplicate names (excluding the current tab)
+    let dup: Option<(String,)> = sqlx::query_as(
+        "SELECT id FROM tabs WHERE name = ?1 AND id != ?2"
+    )
+        .bind(&name)
+        .bind(&id)
+        .fetch_optional(&db.0)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if dup.is_some() {
+        return Err("同名便签已存在".into());
+    }
+
     let now = chrono::Utc::now().to_rfc3339();
     sqlx::query("UPDATE tabs SET name = ?1, updated_at = ?2 WHERE id = ?3")
         .bind(&name)

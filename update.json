@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
-  "notes": "初次发布",
-  "pub_date": "2026-05-24T12:00:00Z",
+  "notes": "初次公开版本。刘海触发便签、Markdown富文本编辑、多便签管理、自动更新、长稳优化。",
+  "pub_date": "2026-05-24T15:00:00Z",
   "platforms": {
     "darwin-aarch64": {
       "signature": "",

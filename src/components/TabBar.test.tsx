@@ -58,12 +58,12 @@ describe('TabBar', () => {
     expect(onRemove).toHaveBeenCalledWith('1');
   });
 
-  it('renames via double-click', async () => {
+  it('renames via edit button', async () => {
     const user = userEvent.setup();
     const onRename = vi.fn();
     render(<TabBar tabs={[baseTab, tab2]} activeTabId="1" {...defaultProps} onRenameTab={onRename} />);
 
-    await user.dblClick(screen.getByText('Note 1'));
+    await user.click(screen.getByTitle('重命名'));
     const input = screen.getByDisplayValue('Note 1');
     await user.clear(input);
     await user.type(input, 'Renamed{Enter}');
@@ -76,7 +76,7 @@ describe('TabBar', () => {
     const onRename = vi.fn();
     render(<TabBar tabs={[baseTab, tab2]} activeTabId="1" {...defaultProps} onRenameTab={onRename} />);
 
-    await user.dblClick(screen.getByText('Note 1'));
+    await user.click(screen.getByTitle('重命名'));
     const input = screen.getByDisplayValue('Note 1');
     await user.clear(input);
     await user.keyboard('{Tab}');
@@ -89,7 +89,7 @@ describe('TabBar', () => {
     const onRename = vi.fn();
     render(<TabBar tabs={[baseTab, tab2]} activeTabId="1" {...defaultProps} onRenameTab={onRename} />);
 
-    await user.dblClick(screen.getByText('Note 1'));
+    await user.click(screen.getByTitle('重命名'));
     const input = screen.getByDisplayValue('Note 1');
     await user.keyboard('{Escape}');
 
@@ -97,12 +97,14 @@ describe('TabBar', () => {
     expect(screen.queryByDisplayValue('Note 1')).not.toBeInTheDocument();
   });
 
-  it('shows edit button on hover for active tab', () => {
+  it('shows edit button for active tab', () => {
     render(<TabBar tabs={[baseTab, tab2]} activeTabId="1" {...defaultProps} />);
-    const tabItem = screen.getByText('Note 1').closest('.tab-item')!;
-    expect(screen.queryByTitle('重命名')).not.toBeInTheDocument();
-
-    fireEvent.mouseEnter(tabItem);
     expect(screen.getByTitle('重命名')).toBeInTheDocument();
+  });
+
+  it('hides edit button for non-active tab', () => {
+    render(<TabBar tabs={[baseTab, tab2]} activeTabId="1" {...defaultProps} />);
+    const tabItem2 = screen.getByText('Note 2').closest('.tab-item')!;
+    expect(tabItem2.querySelector('[title="重命名"]')).toBeNull();
   });
 });

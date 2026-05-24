@@ -6,9 +6,7 @@ export function useTauriEvents() {
     const unlisteners: (() => void)[] = [];
 
     const setup = async () => {
-      const unlisten = await listen('panel-expand', () => {
-        console.log('panel expand event received');
-      });
+      const unlisten = await listen('panel-expand', () => {});
       unlisteners.push(unlisten);
     };
 

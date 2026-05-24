@@ -61,7 +61,9 @@ pub fn run() {
                             is_expanded = true;
                         }
                     } else {
-                        // When expanded, keep-open area covers the drawer bounds plus margin
+                        // Keep-open area extends from drawer bottom to screen top,
+                        // so mouse transitioning from notch trigger into the drawer
+                        // doesn't trigger collapse before reaching it.
                         let drawer_x = (screen_w - expanded_w) / 2.0;
                         let drawer_y = vis_origin_y + visible_h - expanded_h;
                         let margin = 4.0;
@@ -69,7 +71,7 @@ pub fn run() {
                             drawer_x - margin,
                             drawer_y - margin,
                             expanded_w + margin * 2.0,
-                            expanded_h + margin * 2.0,
+                            screen_h - drawer_y + margin,
                         );
                         if !notch::mouse::is_in_rect(mouse, keep_open_rect) {
                             std::thread::sleep(std::time::Duration::from_millis(500));

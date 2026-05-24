@@ -191,6 +191,9 @@ pub async fn init_database(app: &AppHandle) -> Result<AppDatabase, Box<dyn std::
 
     sqlx::query(sql).execute(&pool).await?;
 
+    // Reclaim disk space from any previously deleted tabs
+    sqlx::query("VACUUM;").execute(&pool).await?;
+
     Ok(AppDatabase(pool))
 }
 

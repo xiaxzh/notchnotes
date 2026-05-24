@@ -71,14 +71,11 @@ export const useNoteStore = create<NoteStore>((set, get) => ({
   },
 
   renameTab: async (id: string, name: string) => {
-    try {
-      await api.renameTab(id, name.slice(0, 30));
-      set((state) => ({
-        tabs: state.tabs.map((t) => (t.id === id ? { ...t, name: name.slice(0, 30) } : t)),
-      }));
-    } catch (e) {
-      console.error('Failed to rename tab:', e);
-    }
+    const sliced = name.slice(0, 30);
+    await api.renameTab(id, sliced);
+    set((state) => ({
+      tabs: state.tabs.map((t) => (t.id === id ? { ...t, name: sliced } : t)),
+    }));
   },
 
   updateText: async (id: string, text: string) => {

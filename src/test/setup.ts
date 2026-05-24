@@ -13,6 +13,9 @@ class MockPointerEvent extends Event {
 }
 (PointerEvent as any) ??= MockPointerEvent;
 
+// jsdom doesn't implement scrollIntoView
+Element.prototype.scrollIntoView = vi.fn();
+
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));

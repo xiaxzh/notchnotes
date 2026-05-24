@@ -18,9 +18,20 @@ export default function TabBar({
   onRemoveTab,
   onRenameTab,
 }: TabBarProps) {
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to keep active tab visible
+  const activeIndex = tabs.findIndex((t) => t.id === activeTabId);
+  useEffect(() => {
+    if (listRef.current && activeIndex >= 0) {
+      const child = listRef.current.children[activeIndex] as HTMLElement | undefined;
+      child?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }
+  }, [activeIndex]);
+
   return (
     <div className="tab-container">
-      <div className="tab-list">
+      <div className="tab-list" ref={listRef}>
         {tabs.map((tab) => (
           <TabItem
             key={tab.id}
@@ -55,8 +66,10 @@ function TabItem({
 }) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
-  const [hovered, setHovered] = useState(false);
+  const [error, setError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const errorTimerRef = useRef<number | null>(null);
+  const submittingRef = useRef(false);
 
   const displayName = tab.name || '未命名';
 
@@ -68,28 +81,42 @@ function TabItem({
   }, [editing]);
 
   const startEditing = () => {
+    if (errorTimerRef.current !== null) clearTimeout(errorTimerRef.current);
     setEditValue(tab.name || '');
     setEditing(true);
+    setError(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     const trimmed = editValue.trim();
-    onRename(trimmed || '未命名');
-    setEditing(false);
+    try {
+      await onRename(trimmed || '未命名');
+      setEditing(false);
+      setError(false);
+    } catch {
+      setError(true);
+      if (errorTimerRef.current !== null) clearTimeout(errorTimerRef.current);
+      errorTimerRef.current = window.setTimeout(() => {
+        setEditing(false);
+        setError(false);
+        submittingRef.current = false;
+      }, 1500);
+      return;
+    }
+    submittingRef.current = false;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSubmit();
-    if (e.key === 'Escape') setEditing(false);
+    if (e.key === 'Enter') { e.preventDefault(); handleSubmit(); }
+    if (e.key === 'Escape') { setEditing(false); setError(false); }
   };
 
   return (
-    <div
+      <div
       className={'tab-item' + (isActive ? ' active' : '')}
       onClick={onSelect}
-      onDoubleClick={startEditing}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       {editing ? (
         <input
@@ -98,20 +125,21 @@ function TabItem({
           onChange={(e) => setEditValue(e.target.value.slice(0, 30))}
           onBlur={handleSubmit}
           onKeyDown={handleKeyDown}
-          className="tab-edit-input"
+          className={'tab-edit-input' + (error ? ' error' : '')}
           onClick={(e) => e.stopPropagation()}
+          title={error ? '同名便签已存在' : undefined}
         />
       ) : (
-        <span className="tab-label">{displayName}</span>
-      )}
-      {isActive && !editing && hovered && (
-        <button
-          onClick={(e) => { e.stopPropagation(); startEditing(); }}
-          className="tab-edit-btn"
-          title="重命名"
-        >
-          ✎
-        </button>
+        <>
+          <span className="tab-label">{displayName}</span>
+          {isActive && (
+            <button
+              onClick={(e) => { e.stopPropagation(); startEditing(); }}
+              className="tab-edit-btn"
+              title="重命名"
+            >✎</button>
+          )}
+        </>
       )}
       {isActive && canRemove && (
         <button
