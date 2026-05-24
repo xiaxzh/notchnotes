@@ -47,8 +47,12 @@ pub fn expand(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub fn collapse(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    let _ = app.emit("panel-hide", ());
+    Ok(())
+}
+
+pub fn hide_panel(app: &AppHandle) {
     if let Some(drawer) = app.get_webview_window("notch-drawer") {
         let _ = drawer.hide();
     }
-    Ok(())
 }

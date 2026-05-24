@@ -165,4 +165,10 @@ pub async fn collapse_panel(app: AppHandle<tauri::Wry>) -> Result<(), String> {
     crate::notch::panel::collapse(&app).map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+pub async fn hide_panel(app: AppHandle<tauri::Wry>) -> Result<(), String> {
+    crate::notch::panel::hide_panel(&app);
+    Ok(())
+}
+
 

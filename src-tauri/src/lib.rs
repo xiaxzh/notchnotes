@@ -68,6 +68,7 @@ pub fn run() {
                                 let _ = notch::panel::collapse(&handle);
                             });
                             is_expanded = false;
+                            std::thread::sleep(std::time::Duration::from_millis(300));
                         }
                     }
 
@@ -93,6 +94,7 @@ pub fn run() {
             commands::update_settings,
             commands::expand_panel,
             commands::collapse_panel,
+            commands::hide_panel,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

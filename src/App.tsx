@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
+import { invoke } from '@tauri-apps/api/core';
 import { useNoteStore } from './hooks/useNoteStore';
 import { useTauriEvents } from './hooks/useTauriEvents';
 import TabBar from './components/TabBar';
@@ -40,22 +41,61 @@ function App() {
   useTheme();
   useTauriEvents();
 
-  // Play slide-in animation when panel is shown
+  // Entry/exit animation (macOS-style spring)
   useEffect(() => {
-    const unlisten = listen('panel-shown', () => {
-      const el = appRef.current;
-      if (el) {
-        el.animate([
-          { opacity: 0, transform: 'translateY(-20px)' },
-          { opacity: 1, transform: 'translateY(0)' },
+    const unlisteners: (() => void)[] = [];
+    const setup = async () => {
+      const u1 = await listen('panel-shown', () => {
+        const el = appRef.current;
+        if (!el) return;
+        // Immediately set initial state to prevent flash
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-12px) scale(0.96)';
+        void el.offsetHeight;
+        // Spring-bounce entry: drop down with overshoot, settle
+        const anim = el.animate([
+          { opacity: 0, transform: 'translateY(-12px) scale(0.96)', offset: 0 },
+          { opacity: 0.35, transform: 'translateY(-8px) scale(0.972)', offset: 0.12 },
+          { opacity: 0.75, transform: 'translateY(-3px) scale(0.988)', offset: 0.25 },
+          { opacity: 1, transform: 'translateY(2.5px) scale(1.005)', offset: 0.48 },
+          { opacity: 1, transform: 'translateY(-0.8px) scale(0.998)', offset: 0.68 },
+          { opacity: 1, transform: 'translateY(0.3px) scale(1.001)', offset: 0.84 },
+          { opacity: 1, transform: 'translateY(0) scale(1)', offset: 1 },
         ], {
-          duration: 250,
+          duration: 420,
           easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
           fill: 'both',
         });
-      }
-    });
-    return () => { unlisten.then((fn) => fn()); };
+        anim.onfinish = () => {
+          el.style.opacity = '';
+          el.style.transform = '';
+        };
+      });
+      unlisteners.push(u1);
+
+      const u2 = await listen('panel-hide', async () => {
+        const el = appRef.current;
+        if (!el) {
+          await invoke('hide_panel');
+          return;
+        }
+        const anim = el.animate([
+          { opacity: 1, transform: 'translateY(0) scale(1)' },
+          { opacity: 0, transform: 'translateY(-8px) scale(0.97)' },
+        ], {
+          duration: 150,
+          easing: 'ease-in',
+          fill: 'both',
+        });
+        await anim.finished;
+        el.style.opacity = '';
+        el.style.transform = '';
+        await invoke('hide_panel');
+      });
+      unlisteners.push(u2);
+    };
+    setup();
+    return () => { unlisteners.forEach((fn) => fn()); };
   }, []);
 
   useEffect(() => {
