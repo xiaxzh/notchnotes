@@ -3,7 +3,10 @@ use objc2::msg_send;
 use objc2_app_kit::NSScreen;
 use objc2_foundation::{MainThreadMarker, NSRect};
 
-const NOTCH_AREA_HEIGHT: f64 = 52.0;
+/// Height of the notch trigger area at the top of the screen.
+/// Must be tall enough for 16ms polling reliability but short enough
+/// to NOT overlap with app window title bars / drag handles.
+const NOTCH_AREA_HEIGHT: f64 = 20.0;
 
 
 #[derive(Debug, Clone, Copy)]
