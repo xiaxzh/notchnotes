@@ -4,8 +4,8 @@
   "pub_date": "2026-05-24T15:00:00Z",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "",
-      "url": "https://github.com/xiaxzh/notchnotes/releases/download/v0.1.0/NotchNotes-aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSN3oyRGoyelo4VTZoU0kzMFErZ2RONmFKOE9mV3dlMGl2akVIbFN0WDFPcnc0YmhHZ0dCSzJoMElxaDc2MForS1prODdiMHFOQk1lNkxLKzcwUW1mVURiU2lDRlpKSEFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5NjE4NTA2CWZpbGU6Tm90Y2hOb3Rlcy5hcHAudGFyLmd6CnBRSnhmV2Q0cWhpbUFoWVFIWkJ4UVpwNFRRUFhySFZIdG95U3l5NDVoQTJBeEpSYStNNVEwTHlaTFo2MVhOOUllakdoZmVPK1VOYUplT2NFQnBLckJ3PT0K",
+      "url": "https://github.com/xiaxzh/notchnotes/releases/download/v0.1.0/NotchNotes.app.tar.gz"
     },
     "darwin-x86_64": {
       "signature": "",
