@@ -80,10 +80,12 @@ pub fn drawer_frame(layout: &NotchLayout) -> (f64, f64, f64, f64) {
 }
 
 /// Trigger rect in bottom-left coordinates for NSEvent::mouseLocation() comparison.
-/// Matches the physical notch position and size exactly to prevent false triggers.
+/// Positioned at the physical notch: top-center of screen, in the menu bar area.
+/// The notch sits between visible frame and screen top; this rect spans exactly that gap.
 pub fn trigger_rect(layout: &NotchLayout) -> (f64, f64, f64, f64) {
     let x = (layout.screen_frame.2 - layout.notch_width) / 2.0;
     let visible_top = layout.visible_frame.1 + layout.visible_frame.3;
-    let y = visible_top - layout.notch_height;
-    (x, y, layout.notch_width, layout.notch_height)
+    let y = visible_top;
+    let h = layout.screen_frame.3 - visible_top;
+    (x, y, layout.notch_width, h)
 }

@@ -31,11 +31,10 @@ macOS 刘海便签应用。鼠标划过屏幕顶部刘海区域触发展开，�
 ## 交互热区
 
 ### 触发区 (triggerRect)
-- 位置: 与屏幕物理刘海完全一致，顶部居中，紧贴菜单栏下方
-- 尺寸: notch_width × notch_height（约 210×32 pt）
+- 位置: 屏幕顶部，物理刘海正下方（visible_top 到屏幕顶端），水平居中
+- 尺寸: notch_width × (screen_frame.3 − visible_top) — 水平 210px 宽（精确匹配刘海宽度），竖直覆盖菜单栏区域高度
 - 坐标系: bottom-left (与 NSEvent.mouseLocation 一致)
-- 鼠标 polling 线程在此区域内 → 展开
-- 精准匹配刘海位置，避免误触发
+- 鼠标在此区域内 → 展开。不在刘海正下方不会触发，避免误触
 
 ### 保持区 (keepOpenRect)
 - 位置: 与 drawer 窗口位置一致 (水平居中，菜单栏下方)
