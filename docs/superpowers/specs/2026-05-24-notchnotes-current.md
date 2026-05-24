@@ -31,12 +31,12 @@ macOS 刘海便签应用。鼠标划过屏幕顶部刘海区域触发展开，�
 ## 交互热区
 
 ### 触发区 (triggerRect)
-- 位置: 菜单栏中央的刘海位置，水平居中，从菜单栏底部到屏幕顶端
-- 尺寸: notch_width × menu_bar_height（~210 × ~74 pt）
+- 位置: 屏幕最顶端、菜单栏中央的刘海位置，水平居中
+- 尺寸: notch_width × NOTCH_AREA_HEIGHT（~210 × 52 pt）
   - 水平精确匹配刘海宽度，避免菜单栏两侧误触
-  - 竖直覆盖菜单栏全高，确保 16ms 轮询不丢帧
-- 坐标系: bottom-left，`y = visible_top`（菜单栏底部），`h = screen_frame.3 − visible_top`
-- 鼠标必须进入菜单栏中央的刘海区域 → 触发展开。沿着菜单栏底部水平移动不触发
+  - 竖直覆盖刘海区域（顶部 52px），足够 16ms 轮询不丢帧
+- 坐标系: bottom-left，`y = screen_frame.3 − NOTCH_AREA_HEIGHT`
+- 鼠标必须进入屏幕顶端的刘海区域 → 触发展开。沿着菜单栏下半部分或可见内容区移动不触发
 
 ### 保持区 (keepOpenRect)
 - 位置: 与 drawer 窗口位置一致 (水平居中，菜单栏下方)

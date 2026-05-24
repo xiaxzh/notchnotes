@@ -3,6 +3,9 @@ use objc2::msg_send;
 use objc2_app_kit::NSScreen;
 use objc2_foundation::{MainThreadMarker, NSRect};
 
+const NOTCH_AREA_HEIGHT: f64 = 52.0;
+
+
 #[derive(Debug, Clone, Copy)]
 pub struct NotchLayout {
     pub compact_width: f64,
@@ -80,14 +83,14 @@ pub fn drawer_frame(layout: &NotchLayout) -> (f64, f64, f64, f64) {
 }
 
 /// Trigger rect in bottom-left coordinates for NSEvent::mouseLocation() comparison.
-/// Positioned at the physical notch: top-center of screen, from menu bar bottom to screen top.
-/// Horizontal width matches the notch (~210px); vertical height covers the full menu bar
-/// so the mouse can't skip past it between 16ms polling intervals.
-/// Moving along the menu bar bottom (visible_top) outside the notch column does NOT trigger.
+/// Positioned at the physical notch: top-center of screen, at the very top edge.
+/// Horizontal width matches the notch (~210px); vertical height covers the notch area
+/// (top ~52px of the screen) for reliable 16ms polling detection.
+/// Moving along the lower menu bar or visible content area does NOT trigger.
 pub fn trigger_rect(layout: &NotchLayout) -> (f64, f64, f64, f64) {
     let x = (layout.screen_frame.2 - layout.notch_width) / 2.0;
-    let visible_top = layout.visible_frame.1 + layout.visible_frame.3;
-    let y = visible_top;
-    let h = layout.screen_frame.3 - visible_top;
+    let menu_bar_height = layout.screen_frame.3 - (layout.visible_frame.1 + layout.visible_frame.3);
+    let h = NOTCH_AREA_HEIGHT.min(menu_bar_height);
+    let y = layout.screen_frame.3 - h;
     (x, y, layout.notch_width, h)
 }
