@@ -9,6 +9,8 @@ pub struct NotchLayout {
     pub compact_height: f64,
     pub expanded_width: f64,
     pub expanded_height: f64,
+    pub notch_width: f64,
+    pub notch_height: f64,
     /// Full screen frame: (x, y, width, height) in bottom-left screen coordinates
     pub screen_frame: (f64, f64, f64, f64),
     /// Visible frame: (x, y, width, height) in bottom-left screen coordinates
@@ -56,6 +58,8 @@ pub fn get_notch_layout(screen: Option<&NSScreen>) -> NotchLayout {
         compact_height,
         expanded_width,
         expanded_height,
+        notch_width,
+        notch_height,
         screen_frame,
         visible_frame,
     }
@@ -75,12 +79,11 @@ pub fn drawer_frame(layout: &NotchLayout) -> (f64, f64, f64, f64) {
     (x, y, layout.expanded_width, layout.expanded_height)
 }
 
-/// Trigger rect in bottom-left coordinates for NSEvent::mouseLocation() comparison
+/// Trigger rect in bottom-left coordinates for NSEvent::mouseLocation() comparison.
+/// Matches the physical notch position and size exactly to prevent false triggers.
 pub fn trigger_rect(layout: &NotchLayout) -> (f64, f64, f64, f64) {
-    let trigger_width = 250.0_f64.min(layout.screen_frame.2);
-    let trigger_height = 40.0;
-    let x = (layout.screen_frame.2 - trigger_width) / 2.0;
+    let x = (layout.screen_frame.2 - layout.notch_width) / 2.0;
     let visible_top = layout.visible_frame.1 + layout.visible_frame.3;
-    let y = visible_top - trigger_height;
-    (x, y, trigger_width, trigger_height)
+    let y = visible_top - layout.notch_height;
+    (x, y, layout.notch_width, layout.notch_height)
 }
