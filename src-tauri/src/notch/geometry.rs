@@ -50,13 +50,15 @@ pub fn get_notch_layout(screen: Option<&NSScreen>) -> NotchLayout {
         )
     });
 
-    let notch_width = 210.0_f64.min(screen_frame.2 - 36.0);
+    // Sizes are proportional to screen dimensions.
+    // Ratios chosen for comfortable note-taking across common Mac sizes
+    // while staying usable on smaller screens.
+    let expanded_width = f64::min(f64::max(screen_frame.2 * 0.35, 420.0), 600.0);
+    let expanded_height = f64::min(f64::max(screen_frame.3 * 0.45, 360.0), 580.0);
+    let compact_width = f64::min(f64::max(expanded_width * 0.40, 170.0), 250.0);
+    let compact_height = 34.0;
+    let notch_width = f64::min(f64::max(screen_frame.2 * 0.14, 170.0), 240.0);
     let notch_height = 32.0;
-
-    let compact_width = f64::max(notch_width - 6.0, 182.0).min(238.0);
-    let compact_height = f64::max(notch_height + 2.0, 32.0).min(38.0);
-    let expanded_width = f64::min(f64::max(f64::min(notch_width + 220.0, 540.0), 480.0), screen_frame.2 - 36.0);
-    let expanded_height = f64::min(f64::max(notch_height + 374.0, 408.0), screen_frame.3 - 84.0);
 
     NotchLayout {
         compact_width,
@@ -119,7 +121,8 @@ mod tests {
     #[test]
     fn notch_dimensions_within_bounds() {
         let layout = get_notch_layout(None);
-        assert_eq!(layout.notch_width, 210.0);
+        assert!(layout.notch_width >= 170.0);
+        assert!(layout.notch_width <= 240.0);
         assert_eq!(layout.notch_height, 32.0);
     }
 
@@ -139,7 +142,7 @@ mod tests {
         let layout = get_notch_layout(None);
         assert!(layout.expanded_width >= 480.0);
         assert!(layout.expanded_width <= 540.0);
-        assert!(layout.expanded_height >= 408.0);
+        assert!(layout.expanded_height >= 360.0);
         assert!(layout.expanded_height <= 816.0);
         assert!(layout.expanded_width > layout.notch_width);
         assert!(layout.expanded_height > layout.notch_height);
