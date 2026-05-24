@@ -1,0 +1,75 @@
+name: Publish
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build and sign
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: npx tauri build --bundles app
+
+      - name: Determine bundle files
+        id: bundle
+        run: |
+          TARBALL=$(ls src-tauri/target/release/bundle/macos/*.app.tar.gz | head -1)
+          SIG="${TARBALL}.sig"
+          BASENAME=$(basename "$TARBALL" .app.tar.gz)
+          echo "tarball=$TARBALL" >> "$GITHUB_OUTPUT"
+          echo "sig=$SIG" >> "$GITHUB_OUTPUT"
+          echo "basename=$BASENAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload release asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ${{ steps.bundle.outputs.tarball }}
+          asset_name: ${{ steps.bundle.outputs.basename }}.app.tar.gz
+
+      - name: Upload signature
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ${{ steps.bundle.outputs.sig }}
+          asset_name: ${{ steps.bundle.outputs.basename }}.app.tar.gz.sig
+
+      - name: Update update.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          BASENAME: ${{ steps.bundle.outputs.basename }}
+        run: |
+          VERSION="${TAG#v}"
+          SIG=$(cat src-tauri/target/release/bundle/macos/${BASENAME}.app.tar.gz.sig)
+          REPO="${{ github.repository }}"
+          jq \
+            --arg v "$VERSION" \
+            --arg sig "$SIG" \
+            --arg url "https://github.com/${REPO}/releases/download/${TAG}/${BASENAME}.app.tar.gz" \
+            '.version = $v | .platforms."darwin-aarch64".signature = $sig | .platforms."darwin-aarch64".url = $url' \
+            update.json > update.tmp && mv update.tmp update.json
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add update.json
+          git commit -m "chore: update update.json for v$VERSION"
+          git push

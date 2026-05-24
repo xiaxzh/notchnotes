@@ -18,6 +18,7 @@
     "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -30,8 +31,8 @@
     "updater": {
       "active": true,
       "dialog": true,
-      "endpoints": ["https://raw.githubusercontent.com/<USER>/<REPO>/main/update.json"],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI0Q0Y0Njk4N0VCRjUwNjAKUldSZ1VMOSttRWJQSkV3YXB2M1NsT3FaRGlyOWFKVVVZN2dZam9VdE8yaWRLdGZZYlVNdThaei8K"
+      "endpoints": ["https://raw.githubusercontent.com/xiaxzh/notchnotes/main/update.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUzN0MzNkRCRTM2MENGN0IKUldSN3oyRGoyelo4VXpaNnVDZ0kwRW50OWhQbitLZFhwQ3ZFakpBY3MvdGlUd2JkbGUxcFRqKzkK"
     }
   }
 }

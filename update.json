@@ -5,11 +5,11 @@
   "platforms": {
     "darwin-aarch64": {
       "signature": "",
-      "url": "https://github.com/<USER>/<REPO>/releases/download/v0.1.0/NotchNotes-aarch64.app.tar.gz"
+      "url": "https://github.com/xiaxzh/notchnotes/releases/download/v0.1.0/NotchNotes-aarch64.app.tar.gz"
     },
     "darwin-x86_64": {
       "signature": "",
-      "url": "https://github.com/<USER>/<REPO>/releases/download/v0.1.0/NotchNotes-x86_64.app.tar.gz"
+      "url": "https://github.com/xiaxzh/notchnotes/releases/download/v0.1.0/NotchNotes-x86_64.app.tar.gz"
     }
   }
 }
