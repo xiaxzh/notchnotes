@@ -7,21 +7,44 @@ pub fn create_drawer_window(app: &AppHandle) -> Result<(), Box<dyn std::error::E
     let layout = geometry::get_notch_layout(screen.as_deref());
     let frame = geometry::drawer_frame(&layout);
 
-    let window = WebviewWindowBuilder::new(app, "notch-drawer", WebviewUrl::App("index.html".into()))
-        .title("NotchNotes")
-        .inner_size(layout.expanded_width, layout.expanded_height)
-        .position(frame.0, frame.1)
-        .decorations(false)
-        .transparent(true)
-        .always_on_top(true)
-        .skip_taskbar(true)
-        .resizable(false)
-        .focused(false)
-        .build()?;
+    // Wrap webview creation in catch_unwind to handle macOS private API panics
+    // (e.g., drawsBackground KVC removed in a future macOS version).
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        WebviewWindowBuilder::new(app, "notch-drawer", WebviewUrl::App("index.html".into()))
+            .title("NotchNotes")
+            .inner_size(layout.expanded_width, layout.expanded_height)
+            .position(frame.0, frame.1)
+            .decorations(false)
+            .transparent(true)
+            .always_on_top(true)
+            .skip_taskbar(true)
+            .resizable(false)
+            .focused(false)
+            .build()
+    }));
 
-    set_window_floating(&window);
-
-    Ok(())
+    match result {
+        Ok(Ok(window)) => {
+            set_window_floating(&window);
+            Ok(())
+        }
+        Ok(Err(build_err)) => {
+            log::warn!("[notch] failed to create drawer window: {build_err}");
+            Err(Box::new(build_err))
+        }
+        Err(panic) => {
+            let msg = panic
+                .downcast_ref::<String>()
+                .map(|s| s.as_str())
+                .or_else(|| panic.downcast_ref::<&str>().copied())
+                .unwrap_or("unknown panic");
+            log::error!("[notch] macOS API panic while creating window: {msg}");
+            Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("window creation panicked: {msg}"),
+            )))
+        }
+    }
 }
 
 fn set_window_floating(window: &tauri::WebviewWindow) {
