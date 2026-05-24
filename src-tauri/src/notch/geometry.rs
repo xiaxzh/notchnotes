@@ -4,9 +4,9 @@ use objc2_app_kit::NSScreen;
 use objc2_foundation::{MainThreadMarker, NSRect};
 
 /// Height of the notch trigger area at the top of the screen.
-/// Must be tall enough for 16ms polling reliability but short enough
-/// to NOT overlap with app window title bars / drag handles.
-const NOTCH_AREA_HEIGHT: f64 = 20.0;
+/// Thin strip at the very top edge only — leaves ample buffer below
+/// for app window title bars, menu bar clicking, and dragging.
+pub const NOTCH_AREA_HEIGHT: f64 = 6.0;
 
 
 #[derive(Debug, Clone, Copy)]
@@ -85,15 +85,4 @@ pub fn drawer_frame(layout: &NotchLayout) -> (f64, f64, f64, f64) {
     (x, y, layout.expanded_width, layout.expanded_height)
 }
 
-/// Trigger rect in bottom-left coordinates for NSEvent::mouseLocation() comparison.
-/// Positioned at the physical notch: top-center of screen, at the very top edge.
-/// Horizontal width matches the notch (~210px); vertical height covers the notch area
-/// (top ~52px of the screen) for reliable 16ms polling detection.
-/// Moving along the lower menu bar or visible content area does NOT trigger.
-pub fn trigger_rect(layout: &NotchLayout) -> (f64, f64, f64, f64) {
-    let x = (layout.screen_frame.2 - layout.notch_width) / 2.0;
-    let menu_bar_height = layout.screen_frame.3 - (layout.visible_frame.1 + layout.visible_frame.3);
-    let h = NOTCH_AREA_HEIGHT.min(menu_bar_height);
-    let y = layout.screen_frame.3 - h;
-    (x, y, layout.notch_width, h)
-}
+

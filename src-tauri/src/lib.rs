@@ -26,7 +26,6 @@ pub fn run() {
             // Compute initial notch layout for mouse polling
             let screen = notch::geometry::target_screen();
             let layout = notch::geometry::get_notch_layout(screen.as_deref());
-            let trigger_rect = notch::geometry::trigger_rect(&layout);
             let screen_w = layout.screen_frame.2;
             let visible_h = layout.visible_frame.3;
             let vis_origin_y = layout.visible_frame.1;
@@ -35,43 +34,54 @@ pub fn run() {
 
             // Start mouse polling thread
             let app_handle = app.handle().clone();
+            let trigger_threshold = layout.screen_frame.3 - notch::geometry::NOTCH_AREA_HEIGHT;
+            let notch_x_center = (screen_w - layout.notch_width) / 2.0;
+            let notch_x_end = notch_x_center + layout.notch_width;
             std::thread::spawn(move || {
                 let mut is_expanded = false;
+                let mut prev_y = 0.0;
 
                 loop {
                     let mouse = notch::mouse::get_mouse_location();
-                    // When expanded, the keep-open area covers the drawer bounds plus a small margin
-                    let drawer_x = (screen_w - expanded_w) / 2.0;
-                    let drawer_y = vis_origin_y + visible_h - expanded_h;
-                    let margin = 4.0;
-                    let keep_open_rect = (
-                        drawer_x - margin,
-                        drawer_y - margin,
-                        expanded_w + margin * 2.0,
-                        expanded_h + margin * 2.0,
-                    );
-                    let active_rect = if is_expanded { keep_open_rect } else { trigger_rect };
-                    let in_rect = notch::mouse::is_in_rect(mouse, active_rect);
 
-                    if in_rect && !is_expanded {
-                        let handle = app_handle.clone();
-                        let _ = app_handle.run_on_main_thread(move || {
-                            let _ = notch::panel::expand(&handle);
-                        });
-                        is_expanded = true;
-                    } else if !in_rect && is_expanded {
-                        std::thread::sleep(std::time::Duration::from_millis(500));
-                        let mouse2 = notch::mouse::get_mouse_location();
-                        if !notch::mouse::is_in_rect(mouse2, keep_open_rect) {
+                    if !is_expanded {
+                        // Threshold crossing detection: mouse entered the top notch zone from below.
+                        // This is reliable even with a thin trigger zone — catches fast movement.
+                        if prev_y < trigger_threshold && mouse.y >= trigger_threshold
+                            && mouse.x >= notch_x_center && mouse.x <= notch_x_end
+                        {
                             let handle = app_handle.clone();
                             let _ = app_handle.run_on_main_thread(move || {
-                                let _ = notch::panel::collapse(&handle);
+                                let _ = notch::panel::expand(&handle);
                             });
-                            is_expanded = false;
-                            std::thread::sleep(std::time::Duration::from_millis(300));
+                            is_expanded = true;
+                        }
+                    } else {
+                        // When expanded, keep-open area covers the drawer bounds plus margin
+                        let drawer_x = (screen_w - expanded_w) / 2.0;
+                        let drawer_y = vis_origin_y + visible_h - expanded_h;
+                        let margin = 4.0;
+                        let keep_open_rect = (
+                            drawer_x - margin,
+                            drawer_y - margin,
+                            expanded_w + margin * 2.0,
+                            expanded_h + margin * 2.0,
+                        );
+                        if !notch::mouse::is_in_rect(mouse, keep_open_rect) {
+                            std::thread::sleep(std::time::Duration::from_millis(500));
+                            let mouse2 = notch::mouse::get_mouse_location();
+                            if !notch::mouse::is_in_rect(mouse2, keep_open_rect) {
+                                let handle = app_handle.clone();
+                                let _ = app_handle.run_on_main_thread(move || {
+                                    let _ = notch::panel::collapse(&handle);
+                                });
+                                is_expanded = false;
+                                std::thread::sleep(std::time::Duration::from_millis(300));
+                            }
                         }
                     }
 
+                    prev_y = mouse.y;
                     std::thread::sleep(std::time::Duration::from_millis(16));
                 }
             });
