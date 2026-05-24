@@ -48,10 +48,9 @@ jobs:
           APP="src-tauri/target/release/bundle/macos/NotchNotes.app"
           PKG="NotchNotes-${VERSION}.pkg"
           SCRIPTS_DIR=$(mktemp -d)
-          cat > "$SCRIPTS_DIR/postinstall" << 'SCRIPT'
-#!/bin/bash
-xattr -dr com.apple.quarantine /Applications/NotchNotes.app 2>/dev/null || true
-SCRIPT
+          printf '%s\n' '#!/bin/bash' \
+            'xattr -dr com.apple.quarantine /Applications/NotchNotes.app 2>/dev/null || true' \
+            > "$SCRIPTS_DIR/postinstall"
           chmod +x "$SCRIPTS_DIR/postinstall"
           pkgbuild --root "$APP" \
                    --install-location /Applications/NotchNotes.app \
