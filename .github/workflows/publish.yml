@@ -39,6 +39,38 @@ jobs:
           echo "sig=$SIG" >> "$GITHUB_OUTPUT"
           echo "basename=$BASENAME" >> "$GITHUB_OUTPUT"
 
+      - name: Build .pkg installer
+        id: pkg
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          APP="src-tauri/target/release/bundle/macos/NotchNotes.app"
+          PKG="NotchNotes-${VERSION}.pkg"
+          SCRIPTS_DIR=$(mktemp -d)
+          cat > "$SCRIPTS_DIR/postinstall" << 'SCRIPT'
+#!/bin/bash
+xattr -dr com.apple.quarantine /Applications/NotchNotes.app 2>/dev/null || true
+SCRIPT
+          chmod +x "$SCRIPTS_DIR/postinstall"
+          pkgbuild --root "$APP" \
+                   --install-location /Applications/NotchNotes.app \
+                   --identifier com.notchnotes.app \
+                   --version "$VERSION" \
+                   --scripts "$SCRIPTS_DIR" \
+                   "$PKG"
+          rm -rf "$SCRIPTS_DIR"
+          echo "pkg=$PKG" >> "$GITHUB_OUTPUT"
+          echo "Created $PKG"
+
+      - name: Upload .pkg installer
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          file: ${{ steps.pkg.outputs.pkg }}
+          asset_name: ${{ steps.pkg.outputs.pkg }}
+
       - name: Upload release asset
         uses: svenstaro/upload-release-action@v2
         with:
