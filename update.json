@@ -1,0 +1,15 @@
+{
+  "version": "0.1.0",
+  "notes": "初次发布",
+  "pub_date": "2026-05-24T12:00:00Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "",
+      "url": "https://github.com/<USER>/<REPO>/releases/download/v0.1.0/NotchNotes-aarch64.app.tar.gz"
+    },
+    "darwin-x86_64": {
+      "signature": "",
+      "url": "https://github.com/<USER>/<REPO>/releases/download/v0.1.0/NotchNotes-x86_64.app.tar.gz"
+    }
+  }
+}

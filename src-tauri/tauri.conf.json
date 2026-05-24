@@ -1,0 +1,37 @@
+{
+  "productName": "NotchNotes",
+  "version": "0.1.0",
+  "identifier": "com.notchnotes.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build"
+  },
+    "app": {
+      "windows": [],
+      "macOSPrivateApi": true,
+      "security": {
+        "csp": null
+      }
+    },
+    "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "endpoints": ["https://raw.githubusercontent.com/<USER>/<REPO>/main/update.json"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI0Q0Y0Njk4N0VCRjUwNjAKUldSZ1VMOSttRWJQSkV3YXB2M1NsT3FaRGlyOWFKVVVZN2dZam9VdE8yaWRLdGZZYlVNdThaei8K"
+    }
+  }
+}
