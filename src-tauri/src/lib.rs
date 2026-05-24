@@ -37,17 +37,21 @@ pub fn run() {
             let trigger_threshold = layout.screen_frame.3 - notch::geometry::NOTCH_AREA_HEIGHT;
             let notch_x_center = (screen_w - layout.notch_width) / 2.0;
             let notch_x_end = notch_x_center + layout.notch_width;
+            let screen_h = layout.screen_frame.3;
             std::thread::spawn(move || {
                 let mut is_expanded = false;
-                let mut prev_y = 0.0;
+                // Start prev_y high so the very first check doesn't false-trigger
+                let mut prev_y = screen_h;
 
                 loop {
                     let mouse = notch::mouse::get_mouse_location();
 
                     if !is_expanded {
-                        // Threshold crossing detection: mouse entered the top notch zone from below.
-                        // This is reliable even with a thin trigger zone — catches fast movement.
-                        if prev_y < trigger_threshold && mouse.y >= trigger_threshold
+                        // Threshold crossing: mouse must go from below to above threshold.
+                        // prev_y is reset to screen_h on collapse so the user must
+                        // deliberately mouse up from a low position.
+                        if mouse.y >= trigger_threshold
+                            && prev_y < trigger_threshold
                             && mouse.x >= notch_x_center && mouse.x <= notch_x_end
                         {
                             let handle = app_handle.clone();
@@ -76,6 +80,7 @@ pub fn run() {
                                     let _ = notch::panel::collapse(&handle);
                                 });
                                 is_expanded = false;
+                                prev_y = screen_h; // Reset prev_y to prevent false re-trigger
                                 std::thread::sleep(std::time::Duration::from_millis(300));
                             }
                         }
